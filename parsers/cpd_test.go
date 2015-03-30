@@ -5,7 +5,6 @@ package parsers
 import "testing"
 import "encoding/xml"
 import "github.com/dzielne-misie/ral/violations"
-import "fmt"
 
 type CpdTest struct {
 	Counter     int
@@ -15,12 +14,13 @@ type CpdTest struct {
 	ElementsErr []error
 }
 
-func (ct CpdTest) Token() (t xml.Token, err error) {
+func (ct *CpdTest) Token() (t xml.Token, err error) {
 	ct.Counter = ct.Counter + 1
 	return ct.Tokens[ct.Counter], ct.TokensErr[ct.Counter]
 }
 
-func (ct CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
+func (ct *CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
+	v = ct.Elements[ct.Counter]
 	return ct.ElementsErr[ct.Counter]
 }
 
@@ -29,14 +29,14 @@ func TestNormal(t *testing.T) {
 		Counter: -1,
 		Tokens: []xml.Token{
 			xml.StartElement{
-				xml.Name{"duplication", ""},
+				xml.Name{"", "duplication"},
 				[]xml.Attr{
 					xml.Attr{xml.Name{"lines", ""}, "32"},
 					xml.Attr{xml.Name{"tokens", ""}, "64"},
 				},
 			},
 			xml.StartElement{
-				xml.Name{"duplication", ""},
+				xml.Name{"", "duplication"},
 				[]xml.Attr{
 					xml.Attr{xml.Name{"lines", ""}, "128"},
 					xml.Attr{xml.Name{"tokens", ""}, "256"},
@@ -44,21 +44,27 @@ func TestNormal(t *testing.T) {
 			},
 			nil,
 		},
-		TokensErr: []error{nil, nil},
+		TokensErr: []error{nil, nil, nil},
 		Elements: []violations.Duplication{
 			violations.Duplication{Lines: 32, Tokens: 64, CopiedFrom: violations.File{Name: "foo.go", Line: 1}, PastedTo: violations.File{Name: "bar.go", Line: 666}},
-			violations.Duplication{Lines: 128, Tokens: 44, CopiedFrom: violations.File{Name: "example.go", Line: 55}, PastedTo: violations.File{Name: "another_example.go", Line: 38}},
+			violations.Duplication{Lines: 128, Tokens: 256, CopiedFrom: violations.File{Name: "example.go", Line: 55}, PastedTo: violations.File{Name: "another_example.go", Line: 38}},
 		},
 		ElementsErr: []error{nil, nil},
 	}
 	c := new(Cpd)
 	v, _ := c.Parse(ct)
-	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens in foo.go")
-	fmt.Println(len(v))
+	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens")
+	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 64 duplicated tokens")
 }
 
 func assertViolation(t *testing.T, v violations.Violation, vType string, priority int8, message string) {
 	if v.Type != vType {
 		t.Errorf("Expected Violation.Type %q. Received - %q", vType, v.Type)
+	}
+	if v.Priority != priority {
+		t.Errorf("Expected Violation.Priority %q. Received - %q", message, v.Priority)
+	}
+	if v.Message != message {
+		t.Errorf("Expected Violation.Message %q. Received - %q", message, v.Message)
 	}
 }
