@@ -7,7 +7,7 @@ import "encoding/xml"
 import "github.com/dzielne-misie/ral/violations"
 
 type Parser interface {
-	Parse(xml.Decoder) []violations.Violation
+	Parse(xml.Decoder) ([]violations.Violation, error)
 }
 
 type Decoder interface {
