@@ -1,4 +1,5 @@
-h1. ral
+ral
+===
 
 [![Build Status](https://travis-ci.org/dzielne-misie/ral.svg?branch=master)](https://travis-ci.org/dzielne-misie/ral)
 
