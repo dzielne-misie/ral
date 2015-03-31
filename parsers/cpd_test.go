@@ -27,7 +27,7 @@ func (ct *CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
 	return ct.ElementsErr[ct.Counter]
 }
 
-func TestNormal(t *testing.T) {
+func TestNormalCpd(t *testing.T) {
 	ct := &CpdTest{
 		Counter: -1,
 		Tokens: []xml.Token{
