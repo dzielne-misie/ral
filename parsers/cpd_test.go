@@ -5,6 +5,7 @@ package parsers
 import "testing"
 import "encoding/xml"
 import "github.com/dzielne-misie/ral/violations"
+import "reflect"
 
 type CpdTest struct {
 	Counter     int
@@ -20,7 +21,9 @@ func (ct *CpdTest) Token() (t xml.Token, err error) {
 }
 
 func (ct *CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
-	v = ct.Elements[ct.Counter]
+	g := reflect.ValueOf(v).Elem()
+	gv := reflect.ValueOf(ct.Elements[ct.Counter])
+	g.Set(gv)
 	return ct.ElementsErr[ct.Counter]
 }
 
@@ -54,7 +57,7 @@ func TestNormal(t *testing.T) {
 	c := new(Cpd)
 	v, _ := c.Parse(ct)
 	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens")
-	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 64 duplicated tokens")
+	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 256 duplicated tokens")
 }
 
 func assertViolation(t *testing.T, v violations.Violation, vType string, priority int8, message string) {
