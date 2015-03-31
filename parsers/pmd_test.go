@@ -1,10 +1,9 @@
 // Package parser provides set of classes that helps parse various QA
-// tools output into instances of []violations.Violation
+// tools output into instances of []Violation
 package parsers
 
 import (
 	"encoding/xml"
-	"github.com/dzielne-misie/ral/violations"
 	"reflect"
 	"testing"
 )
@@ -13,7 +12,7 @@ type PmdTest struct {
 	Counter     int
 	Tokens      []xml.Token
 	TokensErr   []error
-	Elements    []violations.Mess
+	Elements    []Mess
 	ElementsErr []error
 }
 
@@ -48,27 +47,27 @@ func TestNormalPmd(t *testing.T) {
 			nil,
 		},
 		TokensErr: []error{nil, nil, nil, nil},
-		Elements: []violations.Mess{
-			violations.Mess{
+		Elements: []Mess{
+			Mess{
 				Rule:     "Rule no 1",
 				RuleSet:  "Rule set no 1",
 				Url:      "http://example.com/1/1.html",
 				Priority: 1,
 				Message:  "Fake message no 1",
-				File: violations.File{
+				File: File{
 					Name:     "/home/foo/project/bar.go",
 					FromLine: 10,
 					ToLine:   12,
 				},
 			},
 			{},
-			violations.Mess{
+			Mess{
 				Rule:     "Rule no 2",
 				RuleSet:  "Rule set no 2",
 				Url:      "http://example.com/2/2.html",
 				Priority: 2,
 				Message:  "Fake message no 2",
-				File: violations.File{
+				File: File{
 					Name:     "/home/foo/project/bar.go",
 					FromLine: 33,
 					ToLine:   34,

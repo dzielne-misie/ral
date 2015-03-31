@@ -1,13 +1,12 @@
 // Package parser provides set of classes that helps parse various QA
-// tools output into instances of violations.Violation
+// tools output into instances of Violation
 // mess detector etc).
 package parsers
 
 import "encoding/xml"
-import "github.com/dzielne-misie/ral/violations"
 
 type Parser interface {
-	Parse(xml.Decoder) ([]violations.Violation, error)
+	Parse(xml.Decoder) ([]Violation, error)
 }
 
 type Decoder interface {

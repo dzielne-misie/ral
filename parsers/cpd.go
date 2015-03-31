@@ -1,16 +1,15 @@
 // Package parser provides set of classes that helps parse various QA
-// tools output into instances of []violations.Violation
+// tools output into instances of []Violation
 package parsers
 
 import "encoding/xml"
-import "github.com/dzielne-misie/ral/violations"
 import "fmt"
 
 type Cpd struct {
 }
 
-func (cpd *Cpd) Parse(f Decoder) (v []violations.Violation, err error) {
-	v = make([]violations.Violation, 0, 500)
+func (cpd *Cpd) Parse(f Decoder) (v []Violation, err error) {
+	v = make([]Violation, 0, 500)
 	err = nil
 
 	for {
@@ -21,9 +20,9 @@ func (cpd *Cpd) Parse(f Decoder) (v []violations.Violation, err error) {
 		switch se := t.(type) {
 		case xml.StartElement:
 			if se.Name.Local == "duplication" {
-				var dup violations.Duplication
+				var dup Duplication
 				f.DecodeElement(&dup, &se)
-				violation := new(violations.Violation)
+				violation := new(Violation)
 				violation.Type = "cpd"
 				violation.Priority = 1
 				violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, dup.CopiedFrom.Name, dup.CopiedFrom.FromLine)

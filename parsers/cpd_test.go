@@ -1,17 +1,16 @@
 // Package parser provides set of classes that helps parse various QA
-// tools output into instances of []violations.Violation
+// tools output into instances of []Violation
 package parsers
 
 import "testing"
 import "encoding/xml"
-import "github.com/dzielne-misie/ral/violations"
 import "reflect"
 
 type CpdTest struct {
 	Counter     int
 	Tokens      []xml.Token
 	TokensErr   []error
-	Elements    []violations.Duplication
+	Elements    []Duplication
 	ElementsErr []error
 }
 
@@ -48,9 +47,9 @@ func TestNormalCpd(t *testing.T) {
 			nil,
 		},
 		TokensErr: []error{nil, nil, nil},
-		Elements: []violations.Duplication{
-			violations.Duplication{Lines: 32, Tokens: 64, CopiedFrom: violations.File{Name: "foo.go", FromLine: 1, ToLine: 0}, PastedTo: violations.File{Name: "bar.go", FromLine: 666, ToLine: 0}},
-			violations.Duplication{Lines: 128, Tokens: 256, CopiedFrom: violations.File{Name: "example.go", FromLine: 55, ToLine: 0}, PastedTo: violations.File{Name: "another_example.go", FromLine: 38, ToLine: 0}},
+		Elements: []Duplication{
+			Duplication{Lines: 32, Tokens: 64, CopiedFrom: File{Name: "foo.go", FromLine: 1, ToLine: 0}, PastedTo: File{Name: "bar.go", FromLine: 666, ToLine: 0}},
+			Duplication{Lines: 128, Tokens: 256, CopiedFrom: File{Name: "example.go", FromLine: 55, ToLine: 0}, PastedTo: File{Name: "another_example.go", FromLine: 38, ToLine: 0}},
 		},
 		ElementsErr: []error{nil, nil},
 	}
@@ -60,7 +59,7 @@ func TestNormalCpd(t *testing.T) {
 	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file example.go line 55")
 }
 
-func assertViolation(t *testing.T, v violations.Violation, vType string, priority int8, message string) {
+func assertViolation(t *testing.T, v Violation, vType string, priority int8, message string) {
 	if v.Type != vType {
 		t.Errorf("Expected Violation.Type %q. Received - %q", vType, v.Type)
 	}
