@@ -4,8 +4,9 @@
 package violations
 
 type File struct {
-	Name string
-	Line int16
+	Name     string
+	FromLine int16
+	ToLine   int16
 }
 
 type Duplication struct {

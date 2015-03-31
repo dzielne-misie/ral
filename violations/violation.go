@@ -7,4 +7,5 @@ type Violation struct {
 	Type     string
 	Priority int8
 	Message  string
+	File     File
 }

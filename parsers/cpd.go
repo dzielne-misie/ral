@@ -26,7 +26,7 @@ func (cpd *Cpd) Parse(f Decoder) (v []violations.Violation, err error) {
 				violation := new(violations.Violation)
 				violation.Type = "cpd"
 				violation.Priority = 1
-				violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, dup.CopiedFrom.Name, dup.CopiedFrom.Line)
+				violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, dup.CopiedFrom.Name, dup.CopiedFrom.FromLine)
 				v = append(v, *violation)
 			}
 		}

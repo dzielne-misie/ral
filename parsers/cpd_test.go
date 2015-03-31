@@ -49,8 +49,8 @@ func TestNormal(t *testing.T) {
 		},
 		TokensErr: []error{nil, nil, nil},
 		Elements: []violations.Duplication{
-			violations.Duplication{Lines: 32, Tokens: 64, CopiedFrom: violations.File{Name: "foo.go", Line: 1}, PastedTo: violations.File{Name: "bar.go", Line: 666}},
-			violations.Duplication{Lines: 128, Tokens: 256, CopiedFrom: violations.File{Name: "example.go", Line: 55}, PastedTo: violations.File{Name: "another_example.go", Line: 38}},
+			violations.Duplication{Lines: 32, Tokens: 64, CopiedFrom: violations.File{Name: "foo.go", FromLine: 1, ToLine: 0}, PastedTo: violations.File{Name: "bar.go", FromLine: 666, ToLine: 0}},
+			violations.Duplication{Lines: 128, Tokens: 256, CopiedFrom: violations.File{Name: "example.go", FromLine: 55, ToLine: 0}, PastedTo: violations.File{Name: "another_example.go", FromLine: 38, ToLine: 0}},
 		},
 		ElementsErr: []error{nil, nil},
 	}
