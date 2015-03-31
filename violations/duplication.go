@@ -16,3 +16,12 @@ type Duplication struct {
 	CopiedFrom File
 	PastedTo   File
 }
+
+type Mess struct {
+	Rule     string
+	RuleSet  string
+	Url      string
+	Priority int8
+	Message  string
+	File     File
+}
