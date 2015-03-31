@@ -56,8 +56,8 @@ func TestNormal(t *testing.T) {
 	}
 	c := new(Cpd)
 	v, _ := c.Parse(ct)
-	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens")
-	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 256 duplicated tokens")
+	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens from file foo.go line 1")
+	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file example.go line 55")
 }
 
 func assertViolation(t *testing.T, v violations.Violation, vType string, priority int8, message string) {
