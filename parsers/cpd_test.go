@@ -48,15 +48,33 @@ func TestNormalCpd(t *testing.T) {
 		},
 		TokensErr: []error{nil, nil, nil},
 		Elements: []Duplication{
-			Duplication{Lines: 32, Tokens: 64, CopiedFrom: File{Name: "foo.go", FromLine: 1, ToLine: 0}, PastedTo: File{Name: "bar.go", FromLine: 666, ToLine: 0}},
-			Duplication{Lines: 128, Tokens: 256, CopiedFrom: File{Name: "example.go", FromLine: 55, ToLine: 0}, PastedTo: File{Name: "another_example.go", FromLine: 38, ToLine: 0}},
+			Duplication{Lines: 32, Tokens: 64, Files: []File{File{Name: "foo.go", FromLine: 1, ToLine: 0}, File{Name: "bar.go", FromLine: 666, ToLine: 0}}},
+			Duplication{Lines: 128, Tokens: 256, Files: []File{File{Name: "example.go", FromLine: 55, ToLine: 0}, File{Name: "another_example.go", FromLine: 38, ToLine: 0}}},
 		},
 		ElementsErr: []error{nil, nil},
 	}
 	c := new(Cpd)
 	v, _ := c.Parse(ct)
 	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens from file foo.go line 1")
-	assertViolation(t, v[1], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file example.go line 55")
+	assertViolation(t, v[1], "cpd", 1, "32 duplicated lines and 64 duplicated tokens from file bar.go line 666")
+	assertViolation(t, v[2], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file example.go line 55")
+	assertViolation(t, v[3], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file another_example.go line 38")
+	assertFile(t, v[0].File, "foo.go", 1, 32)
+	assertFile(t, v[1].File, "bar.go", 666, 697)
+	assertFile(t, v[2].File, "example.go", 55, 182)
+	assertFile(t, v[3].File, "another_example.go", 38, 165)
+}
+
+func assertFile(t *testing.T, f File, name string, fromLine int16, toLine int16) {
+	if f.Name != name {
+		t.Errorf("Expected File.Name %q. Received - %q", name, f.Name)
+	}
+	if f.FromLine != fromLine {
+		t.Errorf("Expected File.FromLine %d. Received - %d", fromLine, f.FromLine)
+	}
+	if f.ToLine != toLine {
+		t.Errorf("Expected File.ToLine %d. Received - %d", toLine, f.ToLine)
+	}
 }
 
 func assertViolation(t *testing.T, v Violation, vType string, priority int8, message string) {

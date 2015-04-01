@@ -11,17 +11,16 @@ type Violation struct {
 }
 
 type File struct {
-	Name     string
-	FromLine int16
+	Name     string `xml:"path,attr"`
+	FromLine int16  `xml:"line,attr"`
 	ToLine   int16
 }
 
 type Duplication struct {
-	Lines      int16
-	Tokens     int32
-	code       string
-	CopiedFrom File
-	PastedTo   File
+	Lines  int16  `xml:"lines,attr"`
+	Tokens int32  `xml:"tokens,attr"`
+	Code   string `xml:"codefragment"`
+	Files  []File `xml:"file"`
 }
 
 type Mess struct {

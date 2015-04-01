@@ -22,11 +22,16 @@ func (cpd *Cpd) Parse(f Decoder) (v []Violation, err error) {
 			if se.Name.Local == "duplication" {
 				var dup Duplication
 				f.DecodeElement(&dup, &se)
-				violation := new(Violation)
-				violation.Type = "cpd"
-				violation.Priority = 1
-				violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, dup.CopiedFrom.Name, dup.CopiedFrom.FromLine)
-				v = append(v, *violation)
+				for _, f := range dup.Files {
+					violation := new(Violation)
+					violation.Type = "cpd"
+					violation.Priority = 1
+					violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, f.Name, f.FromLine)
+					violation.File.Name = f.Name
+					violation.File.FromLine = f.FromLine
+					violation.File.ToLine = f.FromLine + dup.Lines - 1
+					v = append(v, *violation)
+				}
 			}
 		}
 	}
