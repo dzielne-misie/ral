@@ -6,7 +6,7 @@ package parsers
 import "encoding/xml"
 
 type Parser interface {
-	Parse(xml.Decoder) ([]Violation, error)
+	Parse(Decoder) ([]Violation, error)
 }
 
 type Decoder interface {
