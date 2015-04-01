@@ -73,7 +73,7 @@ func TestNormalPmd(t *testing.T) {
 			},
 			{},
 			MessedFile{
-				Name: "/home/foo/project/bar.go",
+				Name: "/home/foo/project/foo.go",
 				Violations: []Mess{
 					Mess{
 						Rule:     "Rule no 2",
@@ -95,4 +95,7 @@ func TestNormalPmd(t *testing.T) {
 	assertViolation(t, v[0], "pmd", 1, "Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)")
 	assertViolation(t, v[1], "pmd", 1, "Rule \"Rule no 2\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/2.html)")
 	assertViolation(t, v[2], "pmd", 2, "Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)")
+	assertFile(t, v[0].File, "/home/foo/project/bar.go", 10, 12)
+	assertFile(t, v[1].File, "/home/foo/project/bar.go", 35, 88)
+	assertFile(t, v[2].File, "/home/foo/project/foo.go", 33, 99)
 }
