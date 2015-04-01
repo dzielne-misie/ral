@@ -12,7 +12,7 @@ type PmdTest struct {
 	Counter     int
 	Tokens      []xml.Token
 	TokensErr   []error
-	Elements    []Mess
+	Elements    []MessedFile
 	ElementsErr []error
 }
 
@@ -33,7 +33,7 @@ func TestNormalPmd(t *testing.T) {
 		Counter: -1,
 		Tokens: []xml.Token{
 			xml.StartElement{
-				xml.Name{"", "violation"},
+				xml.Name{"", "file"},
 				[]xml.Attr{},
 			},
 			xml.StartElement{
@@ -41,36 +41,49 @@ func TestNormalPmd(t *testing.T) {
 				[]xml.Attr{},
 			},
 			xml.StartElement{
-				xml.Name{"", "violation"},
+				xml.Name{"", "file"},
 				[]xml.Attr{},
 			},
 			nil,
 		},
 		TokensErr: []error{nil, nil, nil, nil},
-		Elements: []Mess{
-			Mess{
-				Rule:     "Rule no 1",
-				RuleSet:  "Rule set no 1",
-				Url:      "http://example.com/1/1.html",
-				Priority: 1,
-				Message:  "Fake message no 1",
-				File: File{
-					Name:     "/home/foo/project/bar.go",
-					FromLine: 10,
-					ToLine:   12,
+		Elements: []MessedFile{
+			MessedFile{
+				Name: "/home/foo/project/bar.go",
+				Violations: []Mess{
+					Mess{
+						Rule:     "Rule no 1",
+						RuleSet:  "Rule set no 1",
+						Url:      "http://example.com/1/1.html",
+						Priority: 1,
+						Message:  "Fake message no 1",
+						FromLine: 10,
+						ToLine:   12,
+					},
+					Mess{
+						Rule:     "Rule no 2",
+						RuleSet:  "Rule set no 1",
+						Url:      "http://example.com/1/2.html",
+						Priority: 1,
+						Message: "\n\n     Fake message no 1				\n\n",
+						FromLine: 35,
+						ToLine:   88,
+					},
 				},
 			},
 			{},
-			Mess{
-				Rule:     "Rule no 2",
-				RuleSet:  "Rule set no 2",
-				Url:      "http://example.com/2/2.html",
-				Priority: 2,
-				Message:  "Fake message no 2",
-				File: File{
-					Name:     "/home/foo/project/bar.go",
-					FromLine: 33,
-					ToLine:   34,
+			MessedFile{
+				Name: "/home/foo/project/bar.go",
+				Violations: []Mess{
+					Mess{
+						Rule:     "Rule no 2",
+						RuleSet:  "Rule set no 2",
+						Url:      "http://example.com/2/2.html",
+						Priority: 2,
+						Message:  "Fake message no 2",
+						FromLine: 33,
+						ToLine:   99,
+					},
 				},
 			},
 			{},
@@ -80,8 +93,6 @@ func TestNormalPmd(t *testing.T) {
 	c := new(Pmd)
 	v, _ := c.Parse(ct)
 	assertViolation(t, v[0], "pmd", 1, "Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)")
-	assertViolation(t, v[1], "pmd", 1, "Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)")
-	assertViolation(t, v[2], "pmd", 1, "Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)")
-	assertViolation(t, v[3], "pmd", 2, "Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)")
-	assertViolation(t, v[4], "pmd", 2, "Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)")
+	assertViolation(t, v[1], "pmd", 1, "Rule \"Rule no 2\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/2.html)")
+	assertViolation(t, v[2], "pmd", 2, "Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)")
 }

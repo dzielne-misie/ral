@@ -5,6 +5,7 @@ package parsers
 import (
 	"encoding/xml"
 	"fmt"
+	"strings"
 )
 
 type Pmd struct{}
@@ -20,14 +21,14 @@ func (pmd *Pmd) Parse(f Decoder) (v []Violation, err error) {
 		}
 		switch se := t.(type) {
 		case xml.StartElement:
-			if se.Name.Local == "violation" {
-				var mess Mess
-				f.DecodeElement(&mess, &se)
-				for i := mess.File.FromLine; i <= mess.File.ToLine; i++ {
+			if se.Name.Local == "file" {
+				var mF MessedFile
+				f.DecodeElement(&mF, &se)
+				for _, mess := range mF.Violations {
 					violation := new(Violation)
 					violation.Type = "pmd"
 					violation.Priority = mess.Priority
-					violation.Message = fmt.Sprintf("Rule %q from set %q has been violated with message: %q (for details see: %s)", mess.Rule, mess.RuleSet, mess.Message, mess.Url)
+					violation.Message = fmt.Sprintf("Rule %q from set %q has been violated with message: %q (for details see: %s)", mess.Rule, mess.RuleSet, strings.Trim(mess.Message, " \n\t"), mess.Url)
 					v = append(v, *violation)
 				}
 			}

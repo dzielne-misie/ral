@@ -23,11 +23,17 @@ type Duplication struct {
 	Files  []File `xml:"file"`
 }
 
+type MessedFile struct {
+	Name       string `xml:"name,attr"`
+	Violations []Mess `xml:"violation"`
+}
+
 type Mess struct {
-	Rule     string
-	RuleSet  string
-	Url      string
-	Priority int8
-	Message  string
-	File     File
+	Rule     string `xml:"rule,attr"`
+	RuleSet  string `xml:"ruleset,attr"`
+	Url      string `xml:"externalInfoUrl,attr"`
+	Priority int8   `xml:"priority,attr"`
+	Message  string `xml:",innerxml"`
+	FromLine int16  `xml:"beginline,attr"`
+	ToLine   int16  `xml:"endline,attr"`
 }
