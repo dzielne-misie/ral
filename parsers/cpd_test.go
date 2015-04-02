@@ -7,6 +7,7 @@ package parsers
 import (
 	"encoding/xml"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -64,20 +65,36 @@ func TestNormalCpd(t *testing.T) {
 		},
 		ElementsErr: []error{nil, nil},
 	}
-	c := new(Cpd)
-	v, _ := c.Parse(ct)
-	assertViolation(t, v[0], "cpd", 1, "32 duplicated lines and 64 duplicated tokens from file foo.go line 1")
-	assertViolation(t, v[1], "cpd", 1, "32 duplicated lines and 64 duplicated tokens from file bar.go line 666")
-	assertViolation(t, v[2], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file example.go line 55")
-	assertViolation(t, v[3], "cpd", 1, "128 duplicated lines and 256 duplicated tokens from file another_example.go line 38")
-	assertFile(t, v[0].File, "foo.go", 1, 32)
-	assertFile(t, v[1].File, "bar.go", 666, 697)
-	assertFile(t, v[2].File, "example.go", 55, 182)
-	assertFile(t, v[3].File, "another_example.go", 38, 165)
+	ch := make(chan *Violation, 100)
+	wg := new(sync.WaitGroup)
+	c := &Cpd{ch, wg}
+	wg.Add(1)
+	go c.Parse(ct)
+	priorities := []int8{1, 1, 1, 1}
+	msgs := []string{
+		"32 duplicated lines and 64 duplicated tokens from file foo.go line 1",
+		"32 duplicated lines and 64 duplicated tokens from file bar.go line 666",
+		"128 duplicated lines and 256 duplicated tokens from file example.go line 55",
+		"128 duplicated lines and 256 duplicated tokens from file another_example.go line 38",
+	}
+	files := []string{"foo.go", "bar.go", "example.go", "another_example.go"}
+	fromLines := []int16{1, 666, 55, 38}
+	toLines := []int16{32, 697, 182, 165}
+	i := 0
+	go func() {
+		for {
+			select {
+			case v := <-ch:
+				assertViolation(t, v, "cpd", priorities[i], msgs[i])
+				assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
+				i++
+			}
+		}
+	}()
 }
 
 //assertFile streamlines assertions related to File struct
-func assertFile(t *testing.T, f File, name string, fromLine int16, toLine int16) {
+func assertFile(t *testing.T, f *File, name string, fromLine int16, toLine int16) {
 	if f.Name != name {
 		t.Errorf("Expected File.Name %q. Received - %q", name, f.Name)
 	}
@@ -90,7 +107,7 @@ func assertFile(t *testing.T, f File, name string, fromLine int16, toLine int16)
 }
 
 //assertViolation streamlines assertions related to Violation struct
-func assertViolation(t *testing.T, v Violation, vType string, priority int8, message string) {
+func assertViolation(t *testing.T, v *Violation, vType string, priority int8, message string) {
 	if v.Type != vType {
 		t.Errorf("Expected Violation.Type %q. Received - %q", vType, v.Type)
 	}

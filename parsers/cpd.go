@@ -7,20 +7,21 @@ package parsers
 import (
 	"encoding/xml"
 	"fmt"
+	"sync"
 )
 
 // Pmd strict represents object that allows to parse copy paste detector files
 type Cpd struct {
+	ch chan *Violation
+	wg *sync.WaitGroup
 }
 
 /*
 Parse reads copy paste detector XML file using Decoder and and builds []Violation.
 Expects duplication elements with file children to be present in the document .
 */
-func (cpd *Cpd) Parse(f Decoder) (v []Violation, err error) {
-	v = make([]Violation, 0, 500)
-	err = nil
-
+func (cpd *Cpd) Parse(f Decoder) {
+	defer cpd.wg.Done()
 	for {
 		t, _ := f.Token()
 		if t == nil {
@@ -39,11 +40,9 @@ func (cpd *Cpd) Parse(f Decoder) (v []Violation, err error) {
 					violation.File.Name = f.Name
 					violation.File.FromLine = f.FromLine
 					violation.File.ToLine = f.FromLine + dup.Lines - 1
-					v = append(v, *violation)
+					cpd.ch <- violation
 				}
 			}
 		}
 	}
-
-	return v, err
 }

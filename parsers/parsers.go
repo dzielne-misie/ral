@@ -8,7 +8,7 @@ import "encoding/xml"
 
 // All the classes that parse XML document into instance of Violation need to implement Parser interface
 type Parser interface {
-	Parse(Decoder) ([]Violation, error)
+	Parse(Decoder)
 }
 
 // All the classes that decode XML document and are used in Parser need to implement Decoder interface
