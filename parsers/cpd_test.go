@@ -67,7 +67,9 @@ func TestNormalCpd(t *testing.T) {
 	}
 	ch := make(chan *Violation, 100)
 	wg := new(sync.WaitGroup)
-	c := &Cpd{ch, wg}
+	c := new(Cpd)
+	c.SetChannel(ch)
+	c.SetWaitGroup(wg)
 	wg.Add(1)
 	go c.Parse(ct)
 	priorities := []int8{1, 1, 1, 1}
@@ -91,6 +93,7 @@ func TestNormalCpd(t *testing.T) {
 			}
 		}
 	}()
+	wg.Wait()
 }
 
 //assertFile streamlines assertions related to File struct

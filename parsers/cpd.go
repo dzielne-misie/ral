@@ -7,13 +7,11 @@ package parsers
 import (
 	"encoding/xml"
 	"fmt"
-	"sync"
 )
 
 // Pmd strict represents object that allows to parse copy paste detector files
 type Cpd struct {
-	ch chan *Violation
-	wg *sync.WaitGroup
+	Chainable
 }
 
 /*

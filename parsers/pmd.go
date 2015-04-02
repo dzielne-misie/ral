@@ -8,13 +8,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"strings"
-	"sync"
 )
 
 // Pmd strict represents object that allows to parse mess detector files
 type Pmd struct {
-	ch chan *Violation
-	wg *sync.WaitGroup
+	Chainable
 }
 
 /*

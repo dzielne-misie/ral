@@ -103,7 +103,9 @@ func TestNormalPmd(t *testing.T) {
 	}
 	ch := make(chan *Violation, 100)
 	wg := new(sync.WaitGroup)
-	c := &Pmd{ch, wg}
+	c := new(Pmd)
+	c.SetChannel(ch)
+	c.SetWaitGroup(wg)
 	wg.Add(1)
 	go c.Parse(ct)
 	priorities := []int8{1, 1, 2}
@@ -126,4 +128,5 @@ func TestNormalPmd(t *testing.T) {
 			}
 		}
 	}()
+	wg.Wait()
 }

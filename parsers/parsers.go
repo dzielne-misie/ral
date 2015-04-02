@@ -5,10 +5,13 @@ tools output into instances of []Violation
 package parsers
 
 import "encoding/xml"
+import "sync"
 
 // All the classes that parse XML document into instance of Violation need to implement Parser interface
 type Parser interface {
 	Parse(Decoder)
+	SetChannel(ch chan *Violation)
+	SetWaitGroup(wg *sync.WaitGroup)
 }
 
 // All the classes that decode XML document and are used in Parser need to implement Decoder interface
