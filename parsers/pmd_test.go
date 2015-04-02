@@ -7,7 +7,6 @@ package parsers
 import (
 	"encoding/xml"
 	"reflect"
-	"sync"
 	"testing"
 )
 
@@ -101,13 +100,8 @@ func TestNormalPmd(t *testing.T) {
 		},
 		ElementsErr: []error{nil, nil, nil, nil},
 	}
-	ch := make(chan *Violation, 100)
-	wg := new(sync.WaitGroup)
 	c := new(Pmd)
-	c.SetChannel(ch)
-	c.SetWaitGroup(wg)
-	wg.Add(1)
-	go c.Parse(ct)
+	ch, wg := prepareAndRun(c, ct)
 	priorities := []int8{1, 1, 2}
 	msgs := []string{
 		"Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)",
@@ -117,16 +111,6 @@ func TestNormalPmd(t *testing.T) {
 	files := []string{"/home/foo/project/bar.go", "/home/foo/project/bar.go", "/home/foo/project/foo.go"}
 	fromLines := []int16{10, 35, 33}
 	toLines := []int16{12, 88, 99}
-	i := 0
-	go func() {
-		for {
-			select {
-			case v := <-ch:
-				assertViolation(t, v, "pmd", priorities[i], msgs[i])
-				assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
-				i++
-			}
-		}
-	}()
+	go assertViolations(ch, t, "pmd", priorities, msgs, files, fromLines, toLines)
 	wg.Wait()
 }

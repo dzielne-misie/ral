@@ -65,13 +65,9 @@ func TestNormalCpd(t *testing.T) {
 		},
 		ElementsErr: []error{nil, nil},
 	}
-	ch := make(chan *Violation, 100)
-	wg := new(sync.WaitGroup)
+
 	c := new(Cpd)
-	c.SetChannel(ch)
-	c.SetWaitGroup(wg)
-	wg.Add(1)
-	go c.Parse(ct)
+	ch, wg := prepareAndRun(c, ct)
 	priorities := []int8{1, 1, 1, 1}
 	msgs := []string{
 		"32 duplicated lines and 64 duplicated tokens from file foo.go line 1",
@@ -82,18 +78,32 @@ func TestNormalCpd(t *testing.T) {
 	files := []string{"foo.go", "bar.go", "example.go", "another_example.go"}
 	fromLines := []int16{1, 666, 55, 38}
 	toLines := []int16{32, 697, 182, 165}
-	i := 0
-	go func() {
-		for {
-			select {
-			case v := <-ch:
-				assertViolation(t, v, "cpd", priorities[i], msgs[i])
-				assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
-				i++
-			}
-		}
-	}()
+	go assertViolations(ch, t, "cpd", priorities, msgs, files, fromLines, toLines)
 	wg.Wait()
+}
+
+// Receives data from channels and performs assertions
+func assertViolations(ch chan *Violation, t *testing.T, tp string, priorities []int8, msgs []string, files []string, fromLines []int16, toLines []int16) {
+	i := 0
+	for {
+		select {
+		case v := <-ch:
+			assertViolation(t, v, tp, priorities[i], msgs[i])
+			assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
+			i++
+		}
+	}
+}
+
+// Prepares instance of Parser and runs Parse method with mocked dependencies
+func prepareAndRun(p Parser, ct Decoder) (ch chan *Violation, wg *sync.WaitGroup) {
+	ch = make(chan *Violation, 100)
+	wg = new(sync.WaitGroup)
+	p.SetChannel(ch)
+	p.SetWaitGroup(wg)
+	wg.Add(1)
+	go p.Parse(ct)
+	return ch, wg
 }
 
 //assertFile streamlines assertions related to File struct
