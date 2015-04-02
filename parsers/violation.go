@@ -1,8 +1,10 @@
-// Package ral provides set of classes that helps you with
-// parsing various QA tools output files (xunit, copy-paste detector,
-// mess detector etc).
+/*
+Package parser provides set of classes that helps parse various QA
+tools output into instances of []Violation
+*/
 package parsers
 
+// Violation struct represents object that store parsed information on violation details
 type Violation struct {
 	Type     string
 	Priority int8
@@ -10,12 +12,14 @@ type Violation struct {
 	File     File
 }
 
+// File struct represents file element in copy paste detector XML output file
 type File struct {
 	Name     string `xml:"path,attr"`
 	FromLine int16  `xml:"line,attr"`
 	ToLine   int16
 }
 
+// Duplication struct represents duplication element in copy paste detector XML output file
 type Duplication struct {
 	Lines  int16  `xml:"lines,attr"`
 	Tokens int32  `xml:"tokens,attr"`
@@ -23,11 +27,13 @@ type Duplication struct {
 	Files  []File `xml:"file"`
 }
 
+// MessedFile struct represents file element in mess detector output XML file
 type MessedFile struct {
 	Name       string `xml:"name,attr"`
 	Violations []Mess `xml:"violation"`
 }
 
+// Mess struct represents violation element in mess detector output XML file
 type Mess struct {
 	Rule     string `xml:"rule,attr"`
 	RuleSet  string `xml:"ruleset,attr"`

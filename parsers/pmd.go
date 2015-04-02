@@ -1,5 +1,7 @@
-// Package parser provides set of classes that helps parse various QA
-// tools output into instances of []Violation
+/*
+Package parser provides set of classes that helps parse various QA
+tools output into instances of []Violation
+*/
 package parsers
 
 import (
@@ -8,8 +10,13 @@ import (
 	"strings"
 )
 
+// Pmd strict represents object that allows to parse mess detector files
 type Pmd struct{}
 
+/*
+Parse reads mess detector XML file using Decoder and and builds []Violation.
+Expects file elements with violation children to be present in the document .
+*/
 func (pmd *Pmd) Parse(f Decoder) (v []Violation, err error) {
 	v = make([]Violation, 0, 500)
 	err = nil

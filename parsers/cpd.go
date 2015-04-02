@@ -1,13 +1,22 @@
-// Package parser provides set of classes that helps parse various QA
-// tools output into instances of []Violation
+/*
+Package parser provides set of classes that helps parse various QA
+tools output into instances of []Violation
+*/
 package parsers
 
-import "encoding/xml"
-import "fmt"
+import (
+	"encoding/xml"
+	"fmt"
+)
 
+// Pmd strict represents object that allows to parse copy paste detector files
 type Cpd struct {
 }
 
+/*
+Parse reads copy paste detector XML file using Decoder and and builds []Violation.
+Expects duplication elements with file children to be present in the document .
+*/
 func (cpd *Cpd) Parse(f Decoder) (v []Violation, err error) {
 	v = make([]Violation, 0, 500)
 	err = nil

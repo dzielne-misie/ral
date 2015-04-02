@@ -1,11 +1,16 @@
-// Package parser provides set of classes that helps parse various QA
-// tools output into instances of []Violation
+/*
+Package parser provides set of classes that helps parse various QA
+tools output into instances of []Violation
+*/
 package parsers
 
-import "testing"
-import "encoding/xml"
-import "reflect"
+import (
+	"encoding/xml"
+	"reflect"
+	"testing"
+)
 
+// PmdTest struct allows us to mock xml.Decoder behaviour.
 type CpdTest struct {
 	Counter     int
 	Tokens      []xml.Token
@@ -14,11 +19,13 @@ type CpdTest struct {
 	ElementsErr []error
 }
 
+// Implements Decoder interface for testing purposes
 func (ct *CpdTest) Token() (t xml.Token, err error) {
 	ct.Counter = ct.Counter + 1
 	return ct.Tokens[ct.Counter], ct.TokensErr[ct.Counter]
 }
 
+// Implements Decoder interface for testing purposes
 func (ct *CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
 	g := reflect.ValueOf(v).Elem()
 	gv := reflect.ValueOf(ct.Elements[ct.Counter])
@@ -26,6 +33,10 @@ func (ct *CpdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
 	return ct.ElementsErr[ct.Counter]
 }
 
+/*
+Copy-paste detector parser test.
+Tests absolutely normal program execution. No alarms an no suprises.
+*/
 func TestNormalCpd(t *testing.T) {
 	ct := &CpdTest{
 		Counter: -1,
@@ -65,6 +76,7 @@ func TestNormalCpd(t *testing.T) {
 	assertFile(t, v[3].File, "another_example.go", 38, 165)
 }
 
+//assertFile streamlines assertions related to File struct
 func assertFile(t *testing.T, f File, name string, fromLine int16, toLine int16) {
 	if f.Name != name {
 		t.Errorf("Expected File.Name %q. Received - %q", name, f.Name)
@@ -77,6 +89,7 @@ func assertFile(t *testing.T, f File, name string, fromLine int16, toLine int16)
 	}
 }
 
+//assertViolation streamlines assertions related to Violation struct
 func assertViolation(t *testing.T, v Violation, vType string, priority int8, message string) {
 	if v.Type != vType {
 		t.Errorf("Expected Violation.Type %q. Received - %q", vType, v.Type)

@@ -1,5 +1,7 @@
-// Package parser provides set of classes that helps parse various QA
-// tools output into instances of []Violation
+/*
+Package parser provides set of classes that helps parse various QA
+tools output into instances of []Violation
+*/
 package parsers
 
 import (
@@ -8,6 +10,7 @@ import (
 	"testing"
 )
 
+// PmdTest struct allows us to mock xml.Decoder behaviour.
 type PmdTest struct {
 	Counter     int
 	Tokens      []xml.Token
@@ -16,11 +19,14 @@ type PmdTest struct {
 	ElementsErr []error
 }
 
+// Implements Decoder interface for testing purposes
 func (ct *PmdTest) Token() (t xml.Token, err error) {
 	ct.Counter = ct.Counter + 1
 	return ct.Tokens[ct.Counter], ct.TokensErr[ct.Counter]
+
 }
 
+// Implements Decoder interface for testing purposes
 func (ct *PmdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
 	g := reflect.ValueOf(v).Elem()
 	gv := reflect.ValueOf(ct.Elements[ct.Counter])
@@ -28,6 +34,10 @@ func (ct *PmdTest) DecodeElement(v interface{}, start *xml.StartElement) error {
 	return ct.ElementsErr[ct.Counter]
 }
 
+/*
+Mess detector parser test.
+Tests absolutely normal program execution. No alarms an no suprises.
+*/
 func TestNormalPmd(t *testing.T) {
 	ct := &PmdTest{
 		Counter: -1,
