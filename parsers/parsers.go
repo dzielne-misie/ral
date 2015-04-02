@@ -4,8 +4,10 @@ tools output into instances of []Violation
 */
 package parsers
 
-import "encoding/xml"
-import "sync"
+import (
+	"encoding/xml"
+	"sync"
+)
 
 // All the classes that parse XML document into instance of Violation need to implement Parser interface
 type Parser interface {
