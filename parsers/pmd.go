@@ -8,19 +8,21 @@ import (
 	"encoding/xml"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 // Pmd strict represents object that allows to parse mess detector files
-type Pmd struct{}
+type Pmd struct {
+	ch chan *Violation
+	wg *sync.WaitGroup
+}
 
 /*
 Parse reads mess detector XML file using Decoder and and builds []Violation.
 Expects file elements with violation children to be present in the document .
 */
-func (pmd *Pmd) Parse(f Decoder) (v []Violation, err error) {
-	v = make([]Violation, 0, 500)
-	err = nil
-
+func (pmd *Pmd) Parse(f Decoder) {
+	defer pmd.wg.Done()
 	for {
 		t, _ := f.Token()
 		if t == nil {
@@ -39,11 +41,9 @@ func (pmd *Pmd) Parse(f Decoder) (v []Violation, err error) {
 					violation.File.Name = mF.Name
 					violation.File.FromLine = mess.FromLine
 					violation.File.ToLine = mess.ToLine
-					v = append(v, *violation)
+					pmd.ch <- violation
 				}
 			}
 		}
 	}
-
-	return v, err
 }

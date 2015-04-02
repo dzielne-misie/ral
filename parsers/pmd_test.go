@@ -7,6 +7,7 @@ package parsers
 import (
 	"encoding/xml"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -100,12 +101,29 @@ func TestNormalPmd(t *testing.T) {
 		},
 		ElementsErr: []error{nil, nil, nil, nil},
 	}
-	c := new(Pmd)
-	v, _ := c.Parse(ct)
-	assertViolation(t, v[0], "pmd", 1, "Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)")
-	assertViolation(t, v[1], "pmd", 1, "Rule \"Rule no 2\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/2.html)")
-	assertViolation(t, v[2], "pmd", 2, "Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)")
-	assertFile(t, v[0].File, "/home/foo/project/bar.go", 10, 12)
-	assertFile(t, v[1].File, "/home/foo/project/bar.go", 35, 88)
-	assertFile(t, v[2].File, "/home/foo/project/foo.go", 33, 99)
+	ch := make(chan *Violation, 100)
+	wg := new(sync.WaitGroup)
+	c := &Pmd{ch, wg}
+	wg.Add(1)
+	go c.Parse(ct)
+	priorities := []int8{1, 1, 2}
+	msgs := []string{
+		"Rule \"Rule no 1\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/1.html)",
+		"Rule \"Rule no 2\" from set \"Rule set no 1\" has been violated with message: \"Fake message no 1\" (for details see: http://example.com/1/2.html)",
+		"Rule \"Rule no 2\" from set \"Rule set no 2\" has been violated with message: \"Fake message no 2\" (for details see: http://example.com/2/2.html)",
+	}
+	files := []string{"/home/foo/project/bar.go", "/home/foo/project/bar.go", "/home/foo/project/foo.go"}
+	fromLines := []int16{10, 35, 33}
+	toLines := []int16{12, 88, 99}
+	i := 0
+	go func() {
+		for {
+			select {
+			case v := <-ch:
+				assertViolation(t, v, "pmd", priorities[i], msgs[i])
+				assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
+				i++
+			}
+		}
+	}()
 }
