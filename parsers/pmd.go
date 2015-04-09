@@ -37,8 +37,8 @@ func (pmd *Pmd) Parse(f Decoder) {
 					violation.Priority = mess.Priority
 					violation.Message = fmt.Sprintf("Rule %q from set %q has been violated with message: %q (for details see: %s)", mess.Rule, mess.RuleSet, strings.Trim(mess.Message, " \n\t"), mess.Url)
 					violation.File.Name = mF.Name
-					violation.File.FromLine = mess.FromLine
-					violation.File.ToLine = mess.ToLine
+					violation.FromLine = mess.FromLine
+					violation.ToLine = mess.ToLine
 					pmd.ch <- violation
 				}
 			}

@@ -9,22 +9,29 @@ type Violation struct {
 	Type     string
 	Priority int8
 	Message  string
+	Name     string
+	FromLine int16
+	ToLine   int16
 	File     File
 }
 
-// File struct represents file element in copy paste detector XML output file
+// File struct represents file that violations is found in
 type File struct {
+	Name string
+}
+
+// DFile struct represents file element in copy paste detector XML output file
+type DFile struct {
 	Name     string `xml:"path,attr"`
 	FromLine int16  `xml:"line,attr"`
-	ToLine   int16
 }
 
 // Duplication struct represents duplication element in copy paste detector XML output file
 type Duplication struct {
-	Lines  int16  `xml:"lines,attr"`
-	Tokens int32  `xml:"tokens,attr"`
-	Code   string `xml:"codefragment"`
-	Files  []File `xml:"file"`
+	Lines  int16   `xml:"lines,attr"`
+	Tokens int32   `xml:"tokens,attr"`
+	Code   string  `xml:"codefragment"`
+	Files  []DFile `xml:"file"`
 }
 
 // MessedFile struct represents file element in mess detector output XML file
