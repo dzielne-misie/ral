@@ -111,6 +111,7 @@ func TestNormalPmd(t *testing.T) {
 	files := []string{"/home/foo/project/bar.go", "/home/foo/project/bar.go", "/home/foo/project/foo.go"}
 	fromLines := []int16{10, 35, 33}
 	toLines := []int16{12, 88, 99}
-	go assertViolations(ch, t, "pmd", priorities, msgs, files, fromLines, toLines)
+	v := prepareFArray()
+	go assertViolations(ch, t, "pmd", priorities, msgs, files, fromLines, toLines, v)
 	wg.Wait()
 }

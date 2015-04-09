@@ -6,6 +6,7 @@ package parsers
 
 import (
 	"encoding/xml"
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -60,13 +61,14 @@ func TestNormalCpd(t *testing.T) {
 		},
 		TokensErr: []error{nil, nil, nil},
 		Elements: []Duplication{
-			Duplication{Lines: 32, Tokens: 64, Files: []File{File{Name: "foo.go", FromLine: 1, ToLine: 0}, File{Name: "bar.go", FromLine: 666, ToLine: 0}}},
-			Duplication{Lines: 128, Tokens: 256, Files: []File{File{Name: "example.go", FromLine: 55, ToLine: 0}, File{Name: "another_example.go", FromLine: 38, ToLine: 0}}},
+			Duplication{Lines: 32, Tokens: 64, Files: []DFile{DFile{Name: "foo.go", FromLine: 1}, DFile{Name: "bar.go", FromLine: 666}}},
+			Duplication{Lines: 128, Tokens: 256, Files: []DFile{DFile{Name: "example.go", FromLine: 55}, DFile{Name: "another_example.go", FromLine: 38}}},
+			Duplication{Lines: 512, Tokens: 1024, Files: []DFile{DFile{Name: "foo.go", FromLine: 111}, DFile{Name: "another_example.go", FromLine: 222}}},
 		},
 		ElementsErr: []error{nil, nil},
 	}
 
-	c := new(Cpd)
+	c := NewCpd()
 	ch, wg := prepareAndRun(c, ct)
 	priorities := []int8{1, 1, 1, 1}
 	msgs := []string{
@@ -74,22 +76,45 @@ func TestNormalCpd(t *testing.T) {
 		"32 duplicated lines and 64 duplicated tokens from file bar.go line 666",
 		"128 duplicated lines and 256 duplicated tokens from file example.go line 55",
 		"128 duplicated lines and 256 duplicated tokens from file another_example.go line 38",
+		"512 duplicated lines and 1024 duplicated tokens from file another_example.go line 111",
+		"512 duplicated lines and 1024 duplicated tokens from file foo.go line 222",
 	}
-	files := []string{"foo.go", "bar.go", "example.go", "another_example.go"}
-	fromLines := []int16{1, 666, 55, 38}
-	toLines := []int16{32, 697, 182, 165}
-	go assertViolations(ch, t, "cpd", priorities, msgs, files, fromLines, toLines)
+	files := []string{"foo.go", "bar.go", "example.go", "another_example.go", "foo.go", "another_example.go"}
+	fromLines := []int16{1, 666, 55, 38, 111, 222}
+	toLines := []int16{32, 697, 182, 165, 622, 733}
+	v := prepareFArray()
+	go assertViolations(ch, t, "cpd", priorities, msgs, files, fromLines, toLines, v)
 	wg.Wait()
+	assertSameFile(0, 4, v, t)
+	assertSameFile(3, 5, v, t)
+	fmt.Println(v)
+}
+
+func assertSameFile(l int, r int, v [6]*File, t *testing.T) {
+	if v[l] != v[r] {
+		t.Errorf("Element %d is not the same as element %d", l, r)
+	}
+}
+
+func prepareFArray() (v [6]*File) {
+	v[0] = new(File)
+	v[1] = new(File)
+	v[2] = new(File)
+	v[3] = new(File)
+	v[4] = new(File)
+	v[5] = new(File)
+	return v
 }
 
 // Receives data from channels and performs assertions
-func assertViolations(ch chan *Violation, t *testing.T, tp string, priorities []int8, msgs []string, files []string, fromLines []int16, toLines []int16) {
+func assertViolations(ch chan *Violation, t *testing.T, tp string, priorities []int8, msgs []string, files []string, fromLines []int16, toLines []int16, outFiles [6]*File) {
 	i := 0
 	for {
 		select {
 		case v := <-ch:
-			assertViolation(t, v, tp, priorities[i], msgs[i])
-			assertFile(t, &v.File, files[i], fromLines[i], toLines[i])
+			assertViolation(t, v, tp, priorities[i], msgs[i], fromLines[i], toLines[i])
+			assertFile(t, &v.File, files[i])
+			*outFiles[i] = v.File
 			i++
 		}
 	}
@@ -107,20 +132,14 @@ func prepareAndRun(p Parser, ct Decoder) (ch chan *Violation, wg *sync.WaitGroup
 }
 
 //assertFile streamlines assertions related to File struct
-func assertFile(t *testing.T, f *File, name string, fromLine int16, toLine int16) {
+func assertFile(t *testing.T, f *File, name string) {
 	if f.Name != name {
 		t.Errorf("Expected File.Name %q. Received - %q", name, f.Name)
-	}
-	if f.FromLine != fromLine {
-		t.Errorf("Expected File.FromLine %d. Received - %d", fromLine, f.FromLine)
-	}
-	if f.ToLine != toLine {
-		t.Errorf("Expected File.ToLine %d. Received - %d", toLine, f.ToLine)
 	}
 }
 
 //assertViolation streamlines assertions related to Violation struct
-func assertViolation(t *testing.T, v *Violation, vType string, priority int8, message string) {
+func assertViolation(t *testing.T, v *Violation, vType string, priority int8, message string, fromLine int16, toLine int16) {
 	if v.Type != vType {
 		t.Errorf("Expected Violation.Type %q. Received - %q", vType, v.Type)
 	}
@@ -129,5 +148,11 @@ func assertViolation(t *testing.T, v *Violation, vType string, priority int8, me
 	}
 	if v.Message != message {
 		t.Errorf("Expected Violation.Message %q. Received - %q", message, v.Message)
+	}
+	if v.FromLine != fromLine {
+		t.Errorf("Expected Violation.FromLine %q. Received - %q", fromLine, v.FromLine)
+	}
+	if v.ToLine != toLine {
+		t.Errorf("Expected Violation.ToLine %q. Received - %q", toLine, v.ToLine)
 	}
 }
