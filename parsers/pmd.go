@@ -12,7 +12,7 @@ import (
 
 // Pmd strict represents object that allows to parse mess detector files
 type Pmd struct {
-	Chainable
+	Communicable
 }
 
 /*

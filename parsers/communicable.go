@@ -8,17 +8,17 @@ import "sync"
 
 // Represents object that communicate via channels sending instances of Violation around
 // Used as a trait
-type Chainable struct {
+type Communicable struct {
 	ch chan *Violation
 	wg *sync.WaitGroup
 }
 
 // Sets not exported chan property
-func (chn *Chainable) SetChannel(ch chan *Violation) {
+func (chn *Communicable) SetChannel(ch chan *Violation) {
 	chn.ch = ch
 }
 
 // Sets not exported sync.WaitGroup property
-func (chn *Chainable) SetWaitGroup(wg *sync.WaitGroup) {
+func (chn *Communicable) SetWaitGroup(wg *sync.WaitGroup) {
 	chn.wg = wg
 }

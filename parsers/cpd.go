@@ -11,7 +11,7 @@ import (
 
 // Pmd strict represents object that allows to parse copy paste detector files
 type Cpd struct {
-	Chainable
+	Communicable
 }
 
 /*
