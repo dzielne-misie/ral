@@ -12,10 +12,14 @@ import (
 // Pmd strict represents object that allows to parse copy paste detector files
 type cpd struct {
 	Communicable
+	files *files
+	fCh   chan *File
 }
 
 func NewCpd() *cpd {
-	cpd := new(cpd)
+	ch := make(chan *File)
+	files := NewFiles(ch)
+	cpd := &cpd{files: files, fCh: ch}
 	return cpd
 }
 
@@ -40,7 +44,8 @@ func (cpd *cpd) Parse(f Decoder) {
 					violation.Type = "cpd"
 					violation.Priority = 1
 					violation.Message = fmt.Sprintf("%d duplicated lines and %d duplicated tokens from file %s line %d", dup.Lines, dup.Tokens, f.Name, f.FromLine)
-					violation.File.Name = f.Name
+					go cpd.files.Get(f.Name)
+					violation.File = <-cpd.fCh
 					violation.FromLine = f.FromLine
 					violation.ToLine = f.FromLine + dup.Lines - 1
 					cpd.ch <- violation

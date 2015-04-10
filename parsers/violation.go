@@ -12,7 +12,7 @@ type Violation struct {
 	Name     string
 	FromLine int16
 	ToLine   int16
-	File     File
+	File     *File
 }
 
 // File struct represents file that violations is found in

@@ -6,7 +6,6 @@ package parsers
 
 import (
 	"encoding/xml"
-	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -57,64 +56,51 @@ func TestNormalCpd(t *testing.T) {
 					xml.Attr{xml.Name{"tokens", ""}, "256"},
 				},
 			},
+			xml.StartElement{
+				xml.Name{"", "duplication"},
+				[]xml.Attr{
+					xml.Attr{xml.Name{"lines", ""}, "512"},
+					xml.Attr{xml.Name{"tokens", ""}, "1024"},
+				},
+			},
 			nil,
 		},
-		TokensErr: []error{nil, nil, nil},
+		TokensErr: []error{nil, nil, nil, nil},
 		Elements: []Duplication{
 			Duplication{Lines: 32, Tokens: 64, Files: []DFile{DFile{Name: "foo.go", FromLine: 1}, DFile{Name: "bar.go", FromLine: 666}}},
 			Duplication{Lines: 128, Tokens: 256, Files: []DFile{DFile{Name: "example.go", FromLine: 55}, DFile{Name: "another_example.go", FromLine: 38}}},
 			Duplication{Lines: 512, Tokens: 1024, Files: []DFile{DFile{Name: "foo.go", FromLine: 111}, DFile{Name: "another_example.go", FromLine: 222}}},
 		},
-		ElementsErr: []error{nil, nil},
+		ElementsErr: []error{nil, nil, nil},
 	}
 
 	c := NewCpd()
 	ch, wg := prepareAndRun(c, ct)
-	priorities := []int8{1, 1, 1, 1}
+	priorities := []int8{1, 1, 1, 1, 1, 1}
 	msgs := []string{
 		"32 duplicated lines and 64 duplicated tokens from file foo.go line 1",
 		"32 duplicated lines and 64 duplicated tokens from file bar.go line 666",
 		"128 duplicated lines and 256 duplicated tokens from file example.go line 55",
 		"128 duplicated lines and 256 duplicated tokens from file another_example.go line 38",
-		"512 duplicated lines and 1024 duplicated tokens from file another_example.go line 111",
-		"512 duplicated lines and 1024 duplicated tokens from file foo.go line 222",
+		"512 duplicated lines and 1024 duplicated tokens from file foo.go line 111",
+		"512 duplicated lines and 1024 duplicated tokens from file another_example.go line 222",
 	}
 	files := []string{"foo.go", "bar.go", "example.go", "another_example.go", "foo.go", "another_example.go"}
 	fromLines := []int16{1, 666, 55, 38, 111, 222}
 	toLines := []int16{32, 697, 182, 165, 622, 733}
-	v := prepareFArray()
-	go assertViolations(ch, t, "cpd", priorities, msgs, files, fromLines, toLines, v)
+	go assertViolations(ch, t, "cpd", priorities, msgs, files, fromLines, toLines)
 	wg.Wait()
-	assertSameFile(0, 4, v, t)
-	assertSameFile(3, 5, v, t)
-	fmt.Println(v)
-}
-
-func assertSameFile(l int, r int, v [6]*File, t *testing.T) {
-	if v[l] != v[r] {
-		t.Errorf("Element %d is not the same as element %d", l, r)
-	}
-}
-
-func prepareFArray() (v [6]*File) {
-	v[0] = new(File)
-	v[1] = new(File)
-	v[2] = new(File)
-	v[3] = new(File)
-	v[4] = new(File)
-	v[5] = new(File)
-	return v
 }
 
 // Receives data from channels and performs assertions
-func assertViolations(ch chan *Violation, t *testing.T, tp string, priorities []int8, msgs []string, files []string, fromLines []int16, toLines []int16, outFiles [6]*File) {
+func assertViolations(ch chan *Violation, t *testing.T, tp string, priorities []int8, msgs []string, files []string, fromLines []int16, toLines []int16) {
 	i := 0
 	for {
 		select {
 		case v := <-ch:
+			//			fmt.Println(v)
 			assertViolation(t, v, tp, priorities[i], msgs[i], fromLines[i], toLines[i])
-			assertFile(t, &v.File, files[i])
-			*outFiles[i] = v.File
+			assertFile(t, v.File, files[i])
 			i++
 		}
 	}

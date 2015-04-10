@@ -100,7 +100,7 @@ func TestNormalPmd(t *testing.T) {
 		},
 		ElementsErr: []error{nil, nil, nil, nil},
 	}
-	c := new(Pmd)
+	c := NewPmd()
 	ch, wg := prepareAndRun(c, ct)
 	priorities := []int8{1, 1, 2}
 	msgs := []string{
@@ -111,7 +111,6 @@ func TestNormalPmd(t *testing.T) {
 	files := []string{"/home/foo/project/bar.go", "/home/foo/project/bar.go", "/home/foo/project/foo.go"}
 	fromLines := []int16{10, 35, 33}
 	toLines := []int16{12, 88, 99}
-	v := prepareFArray()
-	go assertViolations(ch, t, "pmd", priorities, msgs, files, fromLines, toLines, v)
+	go assertViolations(ch, t, "pmd", priorities, msgs, files, fromLines, toLines)
 	wg.Wait()
 }
