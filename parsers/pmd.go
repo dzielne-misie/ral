@@ -14,13 +14,11 @@ import (
 type pmd struct {
 	Communicable
 	files *files
-	fCh   chan *File
 }
 
 func NewPmd() *pmd {
-	ch := make(chan *File)
-	files := NewFiles(ch)
-	cpd := &pmd{files: files, fCh: ch}
+	files := NewFiles()
+	cpd := &pmd{files: files}
 	return cpd
 }
 
@@ -45,8 +43,7 @@ func (pmd *pmd) Parse(f Decoder) {
 					violation.Type = "pmd"
 					violation.Priority = mess.Priority
 					violation.Message = fmt.Sprintf("Rule %q from set %q has been violated with message: %q (for details see: %s)", mess.Rule, mess.RuleSet, strings.Trim(mess.Message, " \n\t"), mess.Url)
-					go pmd.files.Get(mF.Name)
-					violation.File = <-pmd.fCh
+					violation.File = pmd.files.Get(mF.Name)
 					violation.FromLine = mess.FromLine
 					violation.ToLine = mess.ToLine
 					pmd.ch <- violation

@@ -1,32 +1,35 @@
 package parsers
 
+import "sync"
+
 // Files struct helps to make sure that only unique File objects exist
 // (File is considered unique as long as its Name - a path - is unique)
 type files struct {
-	ch    chan *File
+	mutex *sync.RWMutex
 	files map[string]*File
 }
 
 // This is a constructor, of some sorts ;) We need to be able
-func NewFiles(ch chan *File) *files {
-	return &files{ch: ch, files: make(map[string]*File)}
+func NewFiles() *files {
+	return &files{mutex: new(sync.RWMutex), files: make(map[string]*File)}
 }
 
 // Function gets the file from the repository or creates a new instance (if there is not file with such a name registered)
-func (f *files) Get(name string) {
+func (f *files) Get(name string) *File {
+	f.mutex.Lock()
 	_, e := f.files[name]
-	//	fmt.Println(file, e)
 	if e == false {
-
 		f.files[name] = &File{Name: name}
-		//		fmt.Println("!!!!!!!!", f.files[name].Name)
-		//		f.files[name] = file
 	}
-	//	fmt.Println("~~~~~~", f.files[name].Name)
-	f.ch <- f.files[name]
+	file := f.files[name]
+	f.mutex.Unlock()
+	return file
 }
 
-// Retrieves all the exiting files. Attention: this function is not goroutine safe! (maps are not - https://blog.golang.org/go-maps-in-action#TOC_6.)
-func (f *files) GetMap() *map[string]*File {
-	return &f.files
+// Retrieves all the exiting files.
+func (f *files) GetMap() map[string]*File {
+	f.mutex.RLock()
+	files := f.files
+	f.mutex.RUnlock()
+	return files
 }

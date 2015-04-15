@@ -1,15 +1,14 @@
 package parsers
 
 import "testing"
+import "sync"
 
 // File pointer availalbe in the map
 func TestExistingFile(t *testing.T) {
-	ch := make(chan *File)
 	fls := make(map[string]*File)
 	fls["kaczka/dziwaczka"] = &File{Name: "kaczka/dziwaczka"}
-	repo := &files{files: fls, ch: ch}
-	go repo.Get("kaczka/dziwaczka")
-	file := <-ch
+	repo := &files{mutex: new(sync.RWMutex), files: fls}
+	file := repo.Get("kaczka/dziwaczka")
 	if file != fls["kaczka/dziwaczka"] {
 		t.Errorf("file and files[\"kaczka/dziwaczka\"] point to different files.")
 	}
@@ -17,11 +16,9 @@ func TestExistingFile(t *testing.T) {
 
 // File pointer not available in the map
 func TestNewFile(t *testing.T) {
-	ch := make(chan *File)
 	fls := make(map[string]*File)
-	repo := &files{files: fls, ch: ch}
-	go repo.Get("lis/witalis")
-	file := <-ch
+	repo := &files{files: fls, mutex: new(sync.RWMutex)}
+	file := repo.Get("lis/witalis")
 	if file.Name != "lis/witalis" {
 		t.Errorf("New File has not been created")
 	}
@@ -29,24 +26,21 @@ func TestNewFile(t *testing.T) {
 
 // Getting the map from the files
 func TestGetMap(t *testing.T) {
-	ch := make(chan *File)
 	fls := make(map[string]*File)
 	fls["pies/pankracy"] = &File{Name: "pies/pankracy"}
-	repo := &files{files: fls, ch: ch}
+	repo := &files{files: fls, mutex: new(sync.RWMutex)}
 	filesMap := repo.GetMap()
-	assertMapLen(*filesMap, 1, t)
-	go repo.Get("pies/pankracy")
-	dog := <-ch
+	assertMapLen(filesMap, 1, t)
+	dog := repo.Get("pies/pankracy")
 	if dog.Name != "pies/pankracy" {
 		t.Errorf("pies/pankracy does not seem to be himself!")
 	}
-	assertMapLen(*filesMap, 1, t)
-	go repo.Get("wilk/i/zając")
-	wolf := <-ch
+	assertMapLen(filesMap, 1, t)
+	wolf := repo.Get("wilk/i/zając")
 	if wolf.Name != "wilk/i/zając" {
 		t.Errorf("Wolf and rabbit do not seem to be themselves!")
 	}
-	assertMapLen(*filesMap, 2, t)
+	assertMapLen(filesMap, 2, t)
 }
 
 // Checks number of element in map
